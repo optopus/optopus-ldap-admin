@@ -33,40 +33,54 @@ module Optopus
         def posixaccounts
           ldap_admin.posixaccounts
         end
+
+        def posixaccount_from_params
+          results = ldap_admin.lookup_username(params[:username])
+          raise 'Invalid posixaccount' unless results
+          @posixaccount = LDAPAdmin::PosixAccount.new(results)
+        end
+
+        def group_from_dn(group_dn)
+          if group_dn.match(/^cn=(\w+),/)
+            $1
+          end
+        end
       end
 
       get '/admin/ldap' do
         erb :admin_ldap
       end
 
-      get '/admin/ldap/createaccount' do
-        erb :admin_ldap_create_account
+      get '/admin/ldap/:username/changepassword' do
+        posixaccount_from_params
+        erb :admin_ldap_change_password
       end
 
-      put '/admin/ldap/createaccount' do
+      post '/admin/ldap/:username/changepassword' do
         begin
-          validate_param_presence 'account-fullname', 'account-password', 'account-username', 'account-primary-group'
-          password_hash = ldap_admin.password_hash(params['account-password'])
-          name_parts = params['account-fullname'].split(' ')
-          first = name_parts.first
-          last = name_parts.last
-          ldap_admin.create_posixaccount(params['account-username'], password_hash,
-                                         first, last, params['account-primary-group'])
+          validate_param_presence 'account-password'
+          posixaccount_from_params
+          hash = ldap_admin.password_hash(params['account-password'])
+          ldap_admin.update_posixaccount_password(@posixaccount.uid, hash)
+          flash[:success] = "Successfully changed #{@posixaccount.uid}'s password!"
+          register_event "{{ references.user.to_link }} changed password for #{@posixaccount.uid} in ldap", :type => 'ldap_changepassword'
+          redirect back
         rescue Exception => e
           handle_error(e)
         end
-        redirect back
       end
 
       get '/admin/ldap/posixaccount/:username/delete' do
-          results = ldap_admin.lookup_username(params[:username])
-          raise 'Invalid posixaccount' unless results
-          @posixaccount = LDAPAdmin::PosixAccount.new(results)
-          erb :admin_ldap_delete_account
+        results = ldap_admin.lookup_username(params[:username])
+        raise 'Invalid posixaccount' unless results
+        @posixaccount = LDAPAdmin::PosixAccount.new(results)
+        erb :admin_ldap_delete_account
       end
 
       delete '/admin/ldap/posixaccount/:username' do
         ldap_admin.delete_posixaccount(params[:username])
+        flash[:success] = "Successfully deleted ldap account '#{params[:username]}'"
+        register_event "{{ references.user.to_link }} deleted '#{params[:username]}' from ldap", :type => 'ldap_delete'
         redirect '/admin/ldap'
       end
 
@@ -88,13 +102,18 @@ module Optopus
             # anything left in old needs to be removed
             old_group_dns.each do |group_dn|
               ldap_admin.delete_memberuid_from_group(group_dn, account.uid)
+              group_name = group_from_dn(group_dn)
+              register_event "{{ references.user.to_link }} removed '#{account.uid}' from group '#{group_name}'", :type => 'ldap_delete'
             end
 
             # anything left in new needs to be added
             new_group_dns.each do |group_dn|
               ldap_admin.add_memberuid_to_group(group_dn, account.uid)
+              group_name = group_from_dn(group_dn)
+              register_event "{{ references.user.to_link }} added '#{account.uid}' to group '#{group_name}'", :type => 'ldap_add'
             end
           end
+          flash[:success] = "Successfully modified #{account.uid}'s group membership!"
         rescue Exception => e
           handle_error(e)
         end
@@ -115,6 +134,28 @@ module Optopus
           handle_error(e)
         end
       end
+
+      get '/admin/ldap/createaccount' do
+        erb :admin_ldap_create_account
+      end
+
+      put '/admin/ldap/createaccount' do
+        begin
+          validate_param_presence 'account-fullname', 'account-password', 'account-username', 'account-primary-group'
+          password_hash = ldap_admin.password_hash(params['account-password'])
+          name_parts = params['account-fullname'].split(' ')
+          first = name_parts.first
+          last = name_parts.last
+          ldap_admin.create_posixaccount(params['account-username'], password_hash,
+                                         first, last, params['account-primary-group'])
+          register_event "{{ references.user.to_link }} created '#{params['account-username']}' in ldap", :type => 'ldap_createaccount'
+          flash[:success] = "Successfully created account for '#{params['account-username']}'"
+        rescue Exception => e
+          handle_error(e)
+        end
+        redirect back
+      end
+
 
       def self.registered(app)
         raise 'Missing LDAP Admin plugin configuration' unless app.settings.respond_to?(:plugins) && app.settings.plugins.include?('ldap_admin')
