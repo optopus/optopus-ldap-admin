@@ -170,6 +170,11 @@ class LDAPAdmin
     @net_ldap.open do |ldap|
       ldap.delete(:dn => dn)
     end
+
+    # Also need to go through and delete all group membership
+    lookup_memberuid(username).map { |e| LDAPAdmin::PosixGroup.new(e).dn }.each do |group_dn|
+      delete_memberuid_from_group(group_dn, username)
+    end
   end
 
   def update_posixaccount_password(username, password_hash)
