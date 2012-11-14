@@ -7,7 +7,7 @@
     <p>Please confirm that you would like to delete <em><%= @posixaccount.uid %></em>. This cannot be undone and will be logged.</p>
   </div>
   <div class="modal-footer">
-    <form id="delete-posixaccount" method="post" action="/admin/ldap/posixaccount/<%= @posixaccount.uid %>">
+    <form id="delete-posixaccount" method="post" action="/ldap/posixaccount/<%= @posixaccount.uid %>">
       <input type="hidden" name="_method" value="delete">
       <input class="btn btn-danger" type="submit" value="Delete">
       <a href="#" class="btn" data-dismiss="modal">Cancel</a>

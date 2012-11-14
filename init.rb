@@ -8,7 +8,7 @@ module Optopus
       extend Optopus::Plugin
       plugin do
         ldap_menu = Optopus::Menu::Section.new(:name => 'ldap_menu', :required_role => 'admin')
-        ldap_menu.add_link :display => 'LDAP Admin', :href => '/admin/ldap'
+        ldap_menu.add_link :display => 'LDAP Admin', :href => '/ldap'
         register_utility_menu ldap_menu
         register_role 'ldap_admin'
       end
@@ -48,16 +48,16 @@ module Optopus
         end
       end
 
-      get '/admin/ldap', :auth => [:ldap_admin, :admin] do
+      get '/ldap', :auth => [:ldap_admin, :admin] do
         erb :admin_ldap
       end
 
-      get '/admin/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
+      get '/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
         posixaccount_from_params
         erb :admin_ldap_change_password
       end
 
-      post '/admin/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
+      post '/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
         begin
           validate_param_presence 'account-password'
           posixaccount_from_params
@@ -71,21 +71,21 @@ module Optopus
         end
       end
 
-      get '/admin/ldap/posixaccount/:username/delete', :auth => [:ldap_admin, :admin] do
+      get '/ldap/posixaccount/:username/delete', :auth => [:ldap_admin, :admin] do
         results = ldap_admin.lookup_username(params[:username])
         raise 'Invalid posixaccount' unless results
         @posixaccount = LDAPAdmin::PosixAccount.new(results)
         erb :admin_ldap_delete_account
       end
 
-      delete '/admin/ldap/posixaccount/:username', :auth => [:ldap_admin, :admin] do
+      delete '/ldap/posixaccount/:username', :auth => [:ldap_admin, :admin] do
         ldap_admin.delete_posixaccount(params[:username])
         flash[:success] = "Successfully deleted ldap account '#{params[:username]}'"
         register_event "{{ references.user.to_link }} deleted '#{params[:username]}' from ldap", :type => 'ldap_delete'
-        redirect '/admin/ldap'
+        redirect '/ldap'
       end
 
-      post '/admin/ldap/posixaccount/:username/groups', :auth => [:ldap_admin, :admin] do
+      post '/ldap/posixaccount/:username/groups', :auth => [:ldap_admin, :admin] do
         begin
           results = ldap_admin.lookup_username(params[:username])
           raise 'Invalid posixaccount' unless results
@@ -122,7 +122,7 @@ module Optopus
         redirect back
       end
 
-      get '/admin/ldap/posixaccount/:username/groups', :auth => [:ldap_admin, :admin] do
+      get '/ldap/posixaccount/:username/groups', :auth => [:ldap_admin, :admin] do
         begin
           results = ldap_admin.lookup_username(params[:username])
           raise 'Invalid posixaccount' unless results
@@ -136,11 +136,11 @@ module Optopus
         end
       end
 
-      get '/admin/ldap/createaccount', :auth => [:ldap_admin, :admin] do
+      get '/ldap/createaccount', :auth => [:ldap_admin, :admin] do
         erb :admin_ldap_create_account
       end
 
-      put '/admin/ldap/createaccount', :auth => [:ldap_admin, :admin] do
+      put '/ldap/createaccount', :auth => [:ldap_admin, :admin] do
         begin
           validate_param_presence 'account-fullname', 'account-password', 'account-username', 'account-primary-group'
           password_hash = ldap_admin.password_hash(params['account-password'])

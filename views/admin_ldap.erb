@@ -1,5 +1,5 @@
 <h3>POSIX Accounts</h3>
-<button class="btn btn-primary" onclick="load_util('/admin/ldap/createaccount')"><i class="icon-user"></i> Add account</button>
+<button class="btn btn-primary" onclick="load_util('/ldap/createaccount')"><i class="icon-user"></i> Add account</button>
 <table class="table table-striped table-condensed">
   <thead>
     <tr>
@@ -21,7 +21,7 @@
         <td><%= account.gidnumber %> (<%= account.posixgroup %>)</td>
         <td><%= account.homedirectory %></td>
         <td><%= account.loginshell %></td>
-        <td><button class="btn btn-mini" onclick="load_util('/admin/ldap/<%= account.uid %>/changepassword')">Change Password</button> <button class="btn btn-mini" onclick="load_util('/admin/ldap/posixaccount/<%= account.uid %>/groups')">Groups</button> <button class="btn btn-mini btn-danger" onclick="load_util('/admin/ldap/posixaccount/<%= account.uid %>/delete')">Delete</button></td>
+        <td><button class="btn btn-mini" onclick="load_util('/ldap/<%= account.uid %>/changepassword')">Change Password</button> <button class="btn btn-mini" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/groups')">Groups</button> <button class="btn btn-mini btn-danger" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/delete')">Delete</button></td>
       </tr>
     <% end %>
   </tbody>
