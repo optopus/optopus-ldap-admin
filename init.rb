@@ -7,7 +7,7 @@ module Optopus
     module LdapAdmin
       extend Optopus::Plugin
       plugin do
-        ldap_menu = Optopus::Menu::Section.new(:name => 'ldap_menu', :required_role => 'admin')
+        ldap_menu = Optopus::Menu::Section.new(:name => 'ldap_menu', :required_role => ['admin', 'ldap_admin'])
         ldap_menu.add_link :display => 'LDAP Admin', :href => '/ldap'
         register_utility_menu ldap_menu
         register_role 'ldap_admin'
