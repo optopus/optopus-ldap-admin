@@ -163,6 +163,10 @@ class LDAPAdmin
         raise LDAPAdminError, "Operation Failed: #{ldap.get_operation_result.message}"
       end
     end
+
+    # also add this user to a group that belongs to the gidnumber
+    group = PosixGroup.new(lookup_gidnumber(gidnumber.to_s))
+    add_memberuid_to_group(group.dn)
   end
 
   def delete_posixaccount(username)
