@@ -3,7 +3,7 @@ require_relative 'password'
 class LDAPAdminError < StandardError; end
 class LDAPAdmin
   class PosixAccount
-    attr_reader :entry, :dn, :cn, :uid, :uidnumber, :gidnumber, :homedirectory, :loginshell, :sshpublickey
+    attr_reader :entry, :dn, :cn, :uid, :uidnumber, :gidnumber, :homedirectory, :loginshell, :sshpublickeys
     attr_accessor :posixgroup, :groups
     def initialize(entry)
       @dn = entry.dn.first
@@ -14,9 +14,9 @@ class LDAPAdmin
       @gidnumber = entry.gidnumber.first
       @homedirectory = entry.homedirectory.first
       @loginshell = entry.loginshell.first
-      @sshpublickey = []
+      @sshpublickeys = []
       if entry.attribute_names().include?(:sshpublickey)
-        @sshpublickey = entry.sshpublickey.sort
+        @sshpublickeys = entry.sshpublickey.sort
       end
       @groups = []
     end
@@ -207,16 +207,11 @@ class LDAPAdmin
     end
   end
 
-  def revokeKey(key)
-    @ldap.modify :dn => @dn, :operations => [[:delete, :sshPublicKey, key]]
-    @ldap.get_operation_result.code == 0 ? @ldap.get_operation_result.code : self.printLdapCallStatus
-  end
-
   def delete_ssh_key(username,key_index)
     dn = dn_from_username(username)
     results = lookup_username(username)
     posixaccount = LDAPAdmin::PosixAccount.new(results)
-    key_to_delete = posixaccount.sshpublickey[Integer(key_index)]
+    key_to_delete = posixaccount.sshpublickeys[Integer(key_index)]
     @net_ldap.open do |ldap|
       ldap.modify(:dn => dn, :operations => [[:delete, :sshPublicKey, key_to_delete]])
     end
@@ -227,26 +222,18 @@ class LDAPAdmin
     results = lookup_username(username)
     posixaccount = LDAPAdmin::PosixAccount.new(results)
 
-    ldap_object_class_exists = false
-    posixaccount.entry.objectclass.each do |objectclass|
-      if objectclass == "ldapPublicKey"
-        ldap_object_class_exists = true
-      end
-    end
-    if !ldap_object_class_exists
+    unless posixaccount.entry.objectclass.include?('ldapPublicKey')
      @net_ldap.open do |ldap|
        ldap.add_attribute dn, :objectClass, "ldapPublicKey"
      end
     end
 
-    key_exists = false
     key_portion = key.slice(/^ssh-[^ ]+ [^ ]+/)
     if posixaccount.entry.attribute_names().include?(:sshpublickey)
-      posixaccount.sshpublickey.each do |key_test|
-        if key_test.slice(/^ssh-[^ ]+ [^ ]+/) == key_portion
-          key_exists = true
-        end
-      end
+      matching_keys = posixaccount.sshpublickeys.select { |akey| akey.slice(/^ssh-[^ ]+ [^ ]+/) == key_portion }
+      matching_keys.size > 0 ? key_exists = true : key_exists = false
+    else 
+      key_exists = false 
     end
     if !key_exists
       @net_ldap.open do |ldap|

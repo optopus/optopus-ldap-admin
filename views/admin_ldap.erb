@@ -21,7 +21,7 @@
         <td><%= account.gidnumber %> (<%= account.posixgroup %>)</td>
         <td><%= account.homedirectory %></td>
         <td><%= account.loginshell %></td>
-        <td><button class="btn btn-mini" onclick="load_util('/ldap/<%= account.uid %>/changepassword')">Change Password</button> <button class="btn btn-mini" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/groups')">Groups</button> <button class="btn btn-mini" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/managesshkeys')">Manage SSH Keys</button> <button class="btn btn-mini btn-danger" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/delete')">Delete</button></td>
+        <td><button class="btn btn-mini" onclick="load_util('/ldap/<%= account.uid %>/changepassword')">Change Password</button> <button class="btn btn-mini" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/groups')">Groups</button> <% if ssh_key_managment_enabled %><button class="btn btn-mini" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/managesshkeys')">Manage SSH Keys</button><% end %> <button class="btn btn-mini btn-danger" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/delete')">Delete</button></td>
       </tr>
     <% end %>
   </tbody>
