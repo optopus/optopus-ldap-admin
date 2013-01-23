@@ -1,0 +1,33 @@
+<% if @posixaccount %>
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">x</button>
+    <h3>Manage <%= @posixaccount.uid %>'s SSH keys</h3>
+  </div>
+  <div class="modal-body">
+    <% if !@posixaccount.sshpublickeys.empty? %>
+      <h4>Current Key(s)</h4>
+      <ul>
+      <% @posixaccount.sshpublickeys.each_index do |index| %>
+        <li><%= @posixaccount.sshpublickeys[index][0,40] %>... 
+           <form method="post" action="/ldap/posixaccount/<%= @posixaccount.uid %>/deletesshkey/<%= index %>/">
+             <input type="submit" class="btn btn-mini btn-danger" onclick="if(!confirm('Are you sure you want to delete this key? This action is not reversable and will be logged.')){return false;}" value="Delete" />
+           </form>
+        </li>
+      <% end %>
+      </ul>
+    <% end %>
+    <form class="form-horizontal" method="post" action="/ldap/posixaccount/<%= @posixaccount.uid %>/add_ssh_key/">
+      <fieldset>
+        <div class="control-group">
+          <label class="control-label" for="sshkey">SSH Key</label>
+          <div class="controls">
+            <input id="sshkey" name="sshkey">
+          </div>
+        </div>
+        <div class="form-actions">
+          <input type="submit" class="btn btn-primary" value="Add SSH Key"/>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+<% end %>
