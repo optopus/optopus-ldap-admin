@@ -3,7 +3,7 @@ require_relative 'password'
 class LDAPAdminError < StandardError; end
 class LDAPAdmin
   class PosixAccount
-    attr_reader :entry, :dn, :cn, :uid, :uidnumber, :gidnumber, :homedirectory, :loginshell
+    attr_reader :entry, :dn, :cn, :uid, :uidnumber, :gidnumber, :homedirectory, :loginshell, :sshpublickeys
     attr_accessor :posixgroup, :groups
     def initialize(entry)
       @dn = entry.dn.first
@@ -14,6 +14,10 @@ class LDAPAdmin
       @gidnumber = entry.gidnumber.first
       @homedirectory = entry.homedirectory.first
       @loginshell = entry.loginshell.first
+      @sshpublickeys = []
+      if entry.attribute_names().include?(:sshpublickey)
+        @sshpublickeys = entry.sshpublickey.sort
+      end
       @groups = []
     end
 
@@ -200,6 +204,41 @@ class LDAPAdmin
     ops = [ [:add, :memberuid, memberuid] ]
     @net_ldap.open do |ldap|
       ldap.modify(:dn => group_dn, :operations => ops)
+    end
+  end
+
+  def delete_ssh_key(username,key_index)
+    dn = dn_from_username(username)
+    results = lookup_username(username)
+    posixaccount = LDAPAdmin::PosixAccount.new(results)
+    key_to_delete = posixaccount.sshpublickeys[Integer(key_index)]
+    @net_ldap.open do |ldap|
+      ldap.modify(:dn => dn, :operations => [[:delete, :sshPublicKey, key_to_delete]])
+    end
+  end
+
+  def add_ssh_key(username,key)
+    dn = dn_from_username(username)
+    results = lookup_username(username)
+    posixaccount = LDAPAdmin::PosixAccount.new(results)
+
+    unless posixaccount.entry.objectclass.include?('ldapPublicKey')
+     @net_ldap.open do |ldap|
+       ldap.add_attribute dn, :objectClass, "ldapPublicKey"
+     end
+    end
+
+    key_portion = key.slice(/^ssh-[^ ]+ [^ ]+/)
+    if posixaccount.entry.attribute_names().include?(:sshpublickey)
+      matching_keys = posixaccount.sshpublickeys.select { |akey| akey.slice(/^ssh-[^ ]+ [^ ]+/) == key_portion }
+      matching_keys.size > 0 ? key_exists = true : key_exists = false
+    else 
+      key_exists = false 
+    end
+    if !key_exists
+      @net_ldap.open do |ldap|
+        ldap.add_attribute dn, :sshPublicKey, key
+      end
     end
   end
 

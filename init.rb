@@ -46,6 +46,10 @@ module Optopus
             $1
           end
         end
+
+        def ssh_key_managment_enabled
+          settings.plugins['ldap_admin'].include?('ssh_key_management') && settings.plugins['ldap_admin']['ssh_key_management'] == true
+        end
       end
 
       get '/ldap', :auth => [:ldap_admin, :admin] do
@@ -55,6 +59,47 @@ module Optopus
       get '/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
         posixaccount_from_params
         erb :admin_ldap_change_password
+      end
+
+      get '/ldap/posixaccount/:username/managesshkeys', :auth => [:ldap_admin, :admin] do
+        begin
+          if !ssh_key_managment_enabled
+            raise "Your LDAP plugin is not currently setup for SSH key management"
+          end
+          posixaccount_from_params
+          erb :admin_manage_ssh_keys
+        rescue Exception => e
+          handle_error(e)
+        end
+      end
+
+      post '/ldap/posixaccount/:username/deletesshkey/:index/', :auth => [:ldap_admin, :admin] do
+        begin
+          if !ssh_key_managment_enabled
+            raise "Your LDAP plugin is not currently setup for SSH key management"
+          end
+          ldap_admin.delete_ssh_key(params[:username],params[:index])
+          flash[:success] = "Successfully deleted an SSH key to #{params[:username]}'s account"
+          register_event "{{ references.user.to_link }} deleted an ssh key for #{params[:username]} in ldap", :type => 'ldap_deletesshkey'
+          redirect back
+        rescue Exception => e
+          handle_error(e)
+        end
+      end
+
+      post '/ldap/posixaccount/:username/add_ssh_key/', :auth => [:ldap_admin, :admin] do
+        begin
+          if !ssh_key_managment_enabled
+            raise "Your LDAP plugin is not currently setup for SSH key management"
+          end
+          validate_param_presence 'sshkey'
+          ldap_admin.add_ssh_key(params[:username],params[:sshkey])
+          flash[:success] = "Successfully added an SSH key to #{params[:username]}'s account"
+          register_event "{{ references.user.to_link }} added an ssh key for #{params[:username]} in ldap", :type => 'ldap_addsshkey'
+          redirect back
+        rescue Exception => e
+          handle_error(e)
+        end
       end
 
       post '/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
