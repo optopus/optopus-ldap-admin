@@ -48,10 +48,7 @@ module Optopus
         end
 
         def ssh_key_managment_enabled
-          enabled = false
-          if settings.plugins['ldap_admin'].include?('ssh_key_management') && settings.plugins['ldap_admin']['ssh_key_management'] == true
-            enabled = true
-          end
+          settings.plugins['ldap_admin'].include?('ssh_key_management') && settings.plugins['ldap_admin']['ssh_key_management'] == true
         end
       end
 
