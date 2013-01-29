@@ -7,7 +7,7 @@ class LDAPAdmin
 
   class PosixAccount
     attr_reader :entry, :dn, :cn, :uid, :uidnumber, :gidnumber, :homedirectory, :loginshell, :sshpublickeys
-    attr_accessor :posixgroup, :groups
+    attr_accessor :posixgroup
     def initialize(entry)
       @dn = entry.dn
       @entry = entry
@@ -21,7 +21,6 @@ class LDAPAdmin
       if entry.attribute_names().include?(:sshpublickey)
         @sshpublickeys = entry.sshpublickey.sort
       end
-      @groups = []
     end
 
     def member_of?(group_dn)
@@ -29,6 +28,12 @@ class LDAPAdmin
         return true if group.dn == group_dn
       end
       false
+    end
+
+    def groups
+      LDAPAdmin.instance.lookup_memberuid(@uid).inject([]) do |groups, entry|
+        groups << LDAPAdmin::PosixGroup.new(entry)
+      end
     end
 
     # Attempt to authenticate using provided password as this posix account instance
