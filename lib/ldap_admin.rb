@@ -1,7 +1,10 @@
+require 'singleton'
 require_relative 'password'
 
 class LDAPAdminError < StandardError; end
 class LDAPAdmin
+  include Singleton
+
   class PosixAccount
     attr_reader :entry, :dn, :cn, :uid, :uidnumber, :gidnumber, :homedirectory, :loginshell, :sshpublickeys
     attr_accessor :posixgroup, :groups
@@ -45,11 +48,17 @@ class LDAPAdmin
   end
 
   attr_accessor :base_dn, :people_dn, :group_dn
-  def initialize(settings={})
+  attr_reader :settings, :net_ldap
+  def initialize
+    @net_ldap = Net::LDAP.new
+  end
+
+  def update_settings(settings={})
     @base_dn = settings.delete(:base_dn)
-    @people_dn = settings.delete(:people_dn) || "ou=People,#{@base_dn}"
-    @group_dn = settings.delete(:group_dn) || "ou=Groups,#{@base_dn}"
+    @people_dn = settings.delete(:people_dn) || @people_dn || "ou=People,#{@base_dn}"
+    @group_dn = settings.delete(:group_dn) || @group_dn || "ou=Groups,#{@base_dn}"
     @net_ldap = Net::LDAP.new(settings)
+    @settings = settings
   end
 
   def posixaccounts

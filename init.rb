@@ -15,20 +15,7 @@ module Optopus
 
       helpers do
         def ldap_admin
-          return @ldap_admin if @ldap_admin
-          plugin_settings = settings.plugins['ldap_admin']
-          ldap_settings = {
-            :base_dn    => plugin_settings['base_dn'],
-            :host       => plugin_settings['host'],
-            :port       => plugin_settings['port'] || 389,
-            :encryption => :start_tls,
-            :auth       => {
-              :method   => :simple,
-              :username => plugin_settings['bind_dn'],
-              :password => plugin_settings['bind_password'],
-            }
-          }
-          @ldap_admin = LDAPAdmin.new(ldap_settings)
+          LDAPAdmin.instance
         end
 
         def posixaccounts
@@ -210,6 +197,18 @@ module Optopus
         raise 'Missing LDAP bind password' unless plugin_settings.include?('bind_password')
         raise 'Missing LDAP host' unless plugin_settings.include?('host')
         raise 'Missing LDAP base dn' unless plugin_settings.include?('base_dn')
+        ldap_settings = {
+          :base_dn    => plugin_settings['base_dn'],
+          :host       => plugin_settings['host'],
+          :port       => plugin_settings['port'] || 389,
+          :encryption => :start_tls,
+          :auth       => {
+            :method   => :simple,
+            :username => plugin_settings['bind_dn'],
+            :password => plugin_settings['bind_password'],
+          }
+        }
+        LDAPAdmin.instance.update_settings(ldap_settings)
         super(app)
       end
     end
