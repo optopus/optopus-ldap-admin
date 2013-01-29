@@ -9,7 +9,7 @@ class LDAPAdmin
     attr_reader :entry, :dn, :cn, :uid, :uidnumber, :gidnumber, :homedirectory, :loginshell, :sshpublickeys
     attr_accessor :posixgroup, :groups
     def initialize(entry)
-      @dn = entry.dn.first
+      @dn = entry.dn
       @entry = entry
       @cn = entry.cn.first
       @uid = entry.uid.first
