@@ -6,11 +6,33 @@ module Optopus
   module Plugin
     module LdapAdmin
       extend Optopus::Plugin
+
+      module UserUtils
+        # Allow a user DN to be overridden in the properties column
+        def ldap_dn
+          self.properties['ldap_dn'] || LDAPAdmin.instance.dn_from_username(ldap_uid)
+        end
+
+        # Allow a user UID to be overridden in the properties column
+        def ldap_uid
+          self.properties['ldap_uid'] || self.username
+        end
+
+        # Return a valid posixaccount object for this optopus user
+        def ldap_posixaccount
+          if entry = LDAPAdmin.instance.lookup_username(ldap_uid)
+            LDAPAdmin::PosixAccount.new(entry)
+          end
+        end
+      end
+
       plugin do
         ldap_menu = Optopus::Menu::Section.new(:name => 'ldap_menu', :required_role => ['admin', 'ldap_admin'])
         ldap_menu.add_link :display => 'LDAP Admin', :href => '/ldap'
         register_utility_menu ldap_menu
         register_role 'ldap_admin'
+        register_mixin :users, Optopus::Plugin::LdapAdmin::UserUtils
+        register_partial :user_profile, :user_ldap_info, :display => 'LDAP Data'
       end
 
       helpers do

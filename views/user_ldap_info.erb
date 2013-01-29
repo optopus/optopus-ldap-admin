@@ -1,0 +1,31 @@
+<div class="page-header">
+  <h3>LDAP Data</h3>
+</div>
+<% if @show_user.ldap_posixaccount %>
+  <table class="table table-condensed">
+    <tbody>
+      <tr>
+        <th>DN</th>
+        <td><%= @show_user.ldap_dn %></td>
+      </tr>
+      <tr>
+        <th>uidNumber</th>
+        <td><%= @show_user.ldap_posixaccount.uidnumber %></td>
+      </tr>
+      <tr>
+        <th>gidNumber</th>
+        <td><%= @show_user.ldap_posixaccount.gidnumber %></td>
+      </tr>
+      <tr>
+        <th>loginShell</th>
+        <td><%= @show_user.ldap_posixaccount.loginshell %></td>
+      </tr>
+      <tr>
+        <th>Groups</th>
+        <td><%= @show_user.ldap_posixaccount.groups.map { |g| g.cn }.join(', ') %></td>
+      </tr>
+    </tbody>
+  </table>
+<% else %>
+  <em>User does not have an LDAP account</em>
+<% end %>
