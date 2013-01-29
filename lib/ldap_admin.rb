@@ -30,6 +30,11 @@ class LDAPAdmin
       end
       false
     end
+
+    # Attempt to authenticate using provided password as this posix account instance
+    def valid_password?(password)
+      LDAPAdmin.instance.net_ldap.bind(:username => @dn, :password => password, :method => :simple)
+    end
   end
 
   class PosixGroup
