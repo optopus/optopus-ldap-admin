@@ -24,7 +24,7 @@ class LDAPAdmin
     end
 
     def member_of?(group_dn)
-      @groups.each do |group|
+      groups.each do |group|
         return true if group.dn == group_dn
       end
       false
