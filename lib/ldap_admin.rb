@@ -124,45 +124,35 @@ class LDAPAdmin
 
   def lookup_gidnumber(gidnumber)
     gidnumber = gidnumber.to_i
-    @gid_cache ||= Hash.new
-    if @gid_cache[gidnumber]
-      return @gid_cache[gidnumber]
-    else
-      search_settings = {
-        :base   => @group_dn,
-        :filter => "(&(objectclass=posixgroup)(gidnumber=#{gidnumber}))",
-      }
-      @net_ldap.open do |ldap|
-        @gid_cache[gidnumber] = ldap.search(search_settings)
-      end
-
-      if @gid_cache[gidnumber].size > 1
-        raise LDAPAdminError, "Multiple entries exist for gidNumber '#{gidnumber}'"
-      end
-
-      @gid_cache[gidnumber] = @gid_cache[gidnumber].first
+    search_settings = {
+      :base   => @group_dn,
+      :filter => "(&(objectclass=posixgroup)(gidnumber=#{gidnumber}))",
+    }
+    results = nil
+    @net_ldap.open do |ldap|
+      results = ldap.search(search_settings)
     end
+
+    if results.size > 1
+      raise LDAPAdminError, "Multiple entries exist for gidNumber '#{gidnumber}'"
+    end
+    results.first
   end
 
   def lookup_username(username)
-    @uid_cache ||= Hash.new
-    if @uid_cache[username]
-      return @uid_cache[username]
-    else
-      search_settings = {
-        :base   => @people_dn,
-        :filter => "(&(objectclass=posixaccount)(uid=#{username}))",
-      }
-      @net_ldap.open do |ldap|
-        @uid_cache[username] = ldap.search(search_settings)
-      end
-
-      if @uid_cache[username].size > 1
-        raise LDAPAdminError, "Multiple entries exist for uid '#{username}'"
-      end
-
-      @uid_cache[username] = @uid_cache[username].first
+    search_settings = {
+      :base   => @people_dn,
+      :filter => "(&(objectclass=posixaccount)(uid=#{username}))",
+    }
+    results = nil
+    @net_ldap.open do |ldap|
+      results = ldap.search(search_settings)
     end
+
+    if results.size > 1
+      raise LDAPAdminError, "Multiple entries exist for uid '#{username}'"
+    end
+    results.first
   end
 
   def create_posixaccount(username, password_hash, first_name, last_name, gidnumber, shell='/bin/bash')
