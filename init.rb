@@ -33,6 +33,12 @@ module Optopus
         register_role 'ldap_admin'
         register_mixin :users, Optopus::Plugin::LdapAdmin::UserUtils
         register_partial :user_profile, :user_ldap_info, :display => 'LDAP Data'
+
+        if plugin_settings['ssh_key_management']
+          profile_ssh_key_menu = Optopus::Menu::Section.new(:name => 'ldap_key_menu')
+          profile_ssh_key_menu.add_link :display => '<i class="icon icon-lock"></i> Manage LDAP ssh keys', :href => '/ldap/manage_ssh_keys'
+          register_profile_menu profile_ssh_key_menu
+        end
       end
 
       helpers do
@@ -205,6 +211,41 @@ module Optopus
                                          first, last, params['account-primary-group'])
           register_event "{{ references.user.to_link }} created '#{params['account-username']}' in ldap", :type => 'ldap_createaccount'
           flash[:success] = "Successfully created account for '#{params['account-username']}'"
+        rescue Exception => e
+          handle_error(e)
+        end
+        redirect back
+      end
+
+      get '/ldap/manage_ssh_keys' do
+        erb :user_manage_ssh_keys
+      end
+
+      delete '/ldap/manage_ssh_keys' do
+        begin
+          validate_param_presence 'delete-ldap-password', 'key-index'
+          if @user.ldap_posixaccount.valid_password?(params['delete-ldap-password'])
+            ldap_admin.delete_ssh_key(@user.username, params['key-index'])
+            flash[:success] = "Successfully removed an ssh key!"
+          else
+            raise "Invalid LDAP pasword!"
+          end
+        rescue Exception => e
+          handle_error(e)
+        end
+        redirect back
+      end
+
+      put '/ldap/manage_ssh_keys' do
+        begin
+          validate_param_presence 'add-ldap-password', 'key-content'
+          if @user.ldap_posixaccount.valid_password?(params['add-ldap-password'])
+            key = params['key-content'].strip
+            ldap_admin.add_ssh_key(@user.username, key)
+            flash[:success] = "Successfully added an ssh key!"
+          else
+            raise "Invalid LDAP pasword!"
+          end
         rescue Exception => e
           handle_error(e)
         end

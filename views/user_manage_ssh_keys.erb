@@ -1,0 +1,91 @@
+<script>
+  $('#add-key').modal();
+  $('#delete-confirmation').modal();
+
+  function delete_ssh_key(key_id, key) {
+    console.log("Trying to delete key: "+key_id);
+    $('#delete-key-content').html(key);
+    $('#delete-key-index').val(key_id);
+    $('#delete-confirmation').modal('show');
+  }
+</script>
+
+<div class="row-fluid">
+  <% if @user.ldap_posixaccount %>
+    <div class="span2">
+      <ul class="nav nav-list">
+        <li class="nav-header">Manage SSH Keys</li>
+        <li><a href="/user/<%= @user.username %>"><i class="icon icon-arrow-left"></i> Back to profile</a></li>
+        <li><a href="#" onclick="$('#add-key').modal('show');"><i class="icon icon-plus"></i> Add new key</a></li>
+      </ul>
+    </div>
+
+    <div class="span10">
+      <table class="table table-bordered table-condensed table-striped">
+        <thead>
+          <tr>
+            <th>Public SSH Keys</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @user.ldap_posixaccount.sshpublickeys.each_with_index do |key, index| %>
+            <tr>
+              <td>
+                <pre><%= key %></pre>
+                <button onclick="delete_ssh_key('<%= index %>', '<%= key %>');" class="btn btn-danger pull-right"><i class="icon icon-white icon-trash"></i> Delete</button>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <em>You do not have an LDAP posix account!</em>
+  <% end %>
+</div>
+
+<div id="add-key" class="modal hide">
+  <form class="form form-inline" method="post">
+    <input type="hidden" name="_method" value="put">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">x</button>
+      <h3>Add new ssh key</h3>
+    </div>
+
+    <div class="modal-body">
+      <div class="alert alert-info">
+        <em>Please enter your <strong>public</strong> ssh key below. Ensure there are no line breaks or extra white space.</em>
+      </div>
+      <textarea name="key-content" style="width: 98%" rows="12"></textarea>
+      LDAP Password: <input name="add-ldap-password" type="password">
+    </div>
+
+    <div class="modal-footer">
+      <input type="submit" class="btn btn-primary" value="Add key"/>
+      <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<div id="delete-confirmation" class="modal hide">
+  <form class="form form-inline" id="delete-key" method="post">
+    <input type="hidden" name="_method" value="delete">
+    <input type="hidden" id="delete-key-index" name="key-index">
+
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3>Confirmation</h3>
+    </div>
+
+    <div class="modal-body">
+      <p>Please confirm that you would like to delete the below ssh key. This cannot be undone.</p>
+      <pre id="delete-key-content"></pre>
+      LDAP Password: <input name="delete-ldap-password" type="password">
+    </div>
+
+    <div class="modal-footer">
+        <input class="btn btn-danger" type="submit" value="Delete">
+        <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+    </div>
+  </form>
+</div>
