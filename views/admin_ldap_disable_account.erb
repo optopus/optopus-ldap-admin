@@ -1,0 +1,15 @@
+<% if @posixaccount %>
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Confirmation</h3>
+  </div>
+  <div class="modal-body">
+    <p>Please confirm that you would like to disable <em><%= @posixaccount.uid %></em>. This cannot be undone and will be logged.</p>
+  </div>
+  <div class="modal-footer">
+    <form id="disable-posixaccount" method="post" action="/ldap/posixaccount/<%= @posixaccount.uid %>/disable">
+      <input class="btn btn-danger" type="submit" value="Disable">
+      <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+    </form>
+  </div>
+<% end %>

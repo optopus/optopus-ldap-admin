@@ -85,6 +85,25 @@ module Optopus
         redirect '/ldap'
       end
 
+      # Disabling users
+      get '/ldap/posixaccount/:username/disable', :auth => [:ldap_admin, :admin] do
+        results = ldap_admin.lookup_username(params[:username])
+        raise 'Invalid posixaccount' unless results
+        @posixaccount = LDAPAdmin::PosixAccount.new(results)
+        erb :admin_ldap_disable_account
+      end
+
+      post '/ldap/posixaccount/:username/disable', :auth => [:ldap_admin, :admin] do
+        begin
+          hash = ldap_admin.password_hash(ldap_admin.random_password)
+          ldap_admin.update_posixaccount_password(@posixaccount.uid, hash)
+          ldap_admin.update_posixaccount_loginshell(@posixaccount.uid, '/sbin/nologin')
+          flash[:success] = "Successfully disabled ldap account '#{params[:username]}'"
+        rescue Exception => e
+          handle_error(e)
+        end
+      end
+
       post '/ldap/posixaccount/:username/groups', :auth => [:ldap_admin, :admin] do
         begin
           results = ldap_admin.lookup_username(params[:username])
