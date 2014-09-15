@@ -238,7 +238,9 @@ class LDAPAdmin
     dn = dn_from_username(username)
     results = lookup_username(username)
     posixaccount = LDAPAdmin::PosixAccount.new(results)
-    ldap.delete_attribute(dn, :sshPublicKey)
+    @net_ldap.open do |ldap|
+      ldap.delete_attribute(dn, :sshPublicKey)
+    end
   end
 
   def add_ssh_key(username,key)
