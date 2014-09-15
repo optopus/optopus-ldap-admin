@@ -202,6 +202,14 @@ class LDAPAdmin
     end
   end
 
+  def update_posixaccount_loginshell(username, loginshell)
+    ops = [ [:replace, :loginShell, loginshell] ]
+    dn = dn_from_username(username)
+    @net_ldap.open do |ldap|
+      ldap.modify(:dn => dn, :operations => ops)
+    end
+  end
+
   def delete_memberuid_from_group(group_dn, memberuid)
     ops = [ [:delete, :memberuid, memberuid] ]
     @net_ldap.open do |ldap|
