@@ -159,6 +159,7 @@ module Optopus
           ldap_admin.update_posixaccount_password(params[:username], hash)
           ldap_admin.update_posixaccount_loginshell(params[:username], '/sbin/nologin')
           flash[:success] = "Successfully disabled ldap account '#{params[:username]}'"
+          redirect '/ldap'
         rescue Exception => e
           handle_error(e)
         end
