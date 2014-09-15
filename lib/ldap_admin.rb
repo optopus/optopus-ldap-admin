@@ -234,6 +234,13 @@ class LDAPAdmin
     end
   end
 
+  def delete_all_ssh_keys(username)
+    dn = dn_from_username(username)
+    results = lookup_username(username)
+    posixaccount = LDAPAdmin::PosixAccount.new(results)
+    ldap.delete_attribute(dn, :sshPublicKey)
+  end
+
   def add_ssh_key(username,key)
     dn = dn_from_username(username)
     results = lookup_username(username)

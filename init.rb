@@ -157,6 +157,7 @@ module Optopus
         begin
           hash = ldap_admin.password_hash(ldap_admin.random_password)
           ldap_admin.update_posixaccount_password(params[:username], hash)
+          ldap_admin.delete_all_ssh_keys(params[:username])
           ldap_admin.update_posixaccount_loginshell(params[:username], '/sbin/nologin')
           flash[:success] = "Successfully disabled ldap account '#{params[:username]}'"
           register_event "{{ references.user.to_link }} disabled '#{params[:username]}' from ldap", :type => 'ldap_disabl'
