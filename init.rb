@@ -156,8 +156,8 @@ module Optopus
       post '/ldap/posixaccount/:username/disable', :auth => [:ldap_admin, :admin] do
         begin
           hash = ldap_admin.password_hash(ldap_admin.random_password)
-          ldap_admin.update_posixaccount_password(@posixaccount.uid, hash)
-          ldap_admin.update_posixaccount_loginshell(@posixaccount.uid, '/sbin/nologin')
+          ldap_admin.update_posixaccount_password(params[:username], hash)
+          ldap_admin.update_posixaccount_loginshell(params[:username], '/sbin/nologin')
           flash[:success] = "Successfully disabled ldap account '#{params[:username]}'"
         rescue Exception => e
           handle_error(e)
