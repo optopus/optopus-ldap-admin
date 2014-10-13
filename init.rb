@@ -34,6 +34,10 @@ module Optopus
         register_mixin :users, Optopus::Plugin::LdapAdmin::UserUtils
         register_partial :user_profile, :user_ldap_info, :display => 'LDAP Data'
 
+        profile_password_menu = Optopus::Menu::Section.new(:name => 'ldap_password_menu')
+        profile_password_menu.add_link :display => '<i class="icon icon-lock"></i> Change LDAP password', :href => '/ldap/user_change_password'
+        register_profile_menu profile_password_menu
+
         if plugin_settings['ssh_key_management']
           profile_ssh_key_menu = Optopus::Menu::Section.new(:name => 'ldap_key_menu')
           profile_ssh_key_menu.add_link :display => '<i class="icon icon-lock"></i> Manage LDAP ssh keys', :href => '/ldap/manage_ssh_keys'
@@ -274,6 +278,23 @@ module Optopus
         redirect back
       end
 
+      # Let users change their own passwords
+      get '/ldap/user_change_password' do
+        erb :user_change_password
+      end
+
+      post '/ldap/user_change_password' do
+        begin
+          validate_param_presence 'account-password', 'verify-account-password'
+          hash = ldap_admin.password_hash(params['account-password'])
+          ldap_admin.update_posixaccount_password(@user.ldap_posixaccount.uid, hash)
+          flash[:success] = "Successfully changed #{@user.ldap_posixaccount.uid}'s password!"
+          register_event "{{ references.user.to_link }} changed password for #{@user.ldap_posixaccount.uid} in ldap", :type => 'ldap_changepassword'
+          redirect back
+        rescue Exception => e
+          handle_error(e)
+        end
+      end
 
       def self.registered(app)
         raise 'Missing LDAP Admin plugin configuration' unless app.settings.respond_to?(:plugins) && app.settings.plugins.include?('ldap_admin')
