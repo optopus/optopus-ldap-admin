@@ -57,8 +57,8 @@ class Net::LDAP::Password
       end
 
       return_hash = {
-        :password_is_valid => password_is_valid
-        :error_message     => error_message
+        :password_is_valid => password_is_valid,
+        :error_message     => error_message,
       }
     end
   end
