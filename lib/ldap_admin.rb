@@ -110,6 +110,10 @@ class LDAPAdmin
     Net::LDAP::Password.generate(:ssha, string)
   end
 
+  def validate_password(password)
+    Net::LDAP::Password.validate(password)
+  end
+
   def lookup_memberuid(uid)
     search_settings = {
       :base   => @group_dn,

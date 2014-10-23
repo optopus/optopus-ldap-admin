@@ -33,5 +33,33 @@ class Net::LDAP::Password
          end
       return attribute_value
     end
+
+    # Password validation
+    def validate(password)
+      password_is_valid = false
+      # RegExes
+
+      if password.to_enum(:scan, /([\~\!\@\#\$\%\^\&\*\(\)\`\-\_\+\=\{\}\[\]\|\\\;\:\'\"\<\>\,\.\/\?])/).map{ Regexp.last_match }.length < 2
+        error_message = "Passwords must have at least 2 special characters."
+      elsif password == password.reverse
+        error_message = "Passwords cannot be palindromes."
+      elsif not password =~ /^.{12,99}$/
+        error_message = "Passwords must be between 12 and 99 characters long."
+      elsif not password =~ /[a-z]/
+        error_message = "Passwords must contain at least 1 lowercase letter."
+      elsif not password =~ /[A-Z]/
+        error_message = "Passwords must contain at least 1 uppercase letter."
+      elsif not password =~ /[0-9]/
+        error_message = "Passwords must contain at least 1 number."
+      else
+        password_is_valid = true
+        error_message     = ''
+      end
+
+      return_hash = {
+        :password_is_valid => password_is_valid
+        :error_message     => error_message
+      }
+    end
   end
 end

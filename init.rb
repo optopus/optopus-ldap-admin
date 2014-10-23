@@ -125,10 +125,15 @@ module Optopus
         begin
           validate_param_presence 'account-password'
           posixaccount_from_params
-          hash = ldap_admin.password_hash(params['account-password'])
-          ldap_admin.update_posixaccount_password(@posixaccount.uid, hash)
-          flash[:success] = "Successfully changed #{@posixaccount.uid}'s password!"
-          register_event "{{ references.user.to_link }} changed password for #{@posixaccount.uid} in ldap", :type => 'ldap_changepassword'
+          validation_info = ldap_admin.validate_password(params['account-password'])
+          if validation_info[:password_is_valid]
+            hash = ldap_admin.password_hash(params['account-password'])
+            ldap_admin.update_posixaccount_password(@posixaccount.uid, hash)
+            flash[:success] = "Successfully changed #{@posixaccount.uid}'s password!"
+            register_event "{{ references.user.to_link }} changed password for #{@posixaccount.uid} in ldap", :type => 'ldap_changepassword'
+          else
+            flash[:error] = "Failed to change #{@posixaccount.uid}'s password; #{validation_info[:error_message]}"
+          end
           redirect back
         rescue Exception => e
           handle_error(e)
@@ -286,9 +291,14 @@ module Optopus
       post '/ldap/user_change_password' do
         begin
           validate_param_presence 'account-password', 'verify-account-password'
-          hash = ldap_admin.password_hash(params['account-password'])
-          ldap_admin.update_posixaccount_password(@user.ldap_posixaccount.uid, hash)
-          flash[:success] = "Your LDAP password has been successfully changed."
+          validation_info = ldap_admin.validate_password(params['account-password'])
+          if validation_info[:password_is_valid]
+            hash = ldap_admin.password_hash(params['account-password'])
+            ldap_admin.update_posixaccount_password(@user.ldap_posixaccount.uid, hash)
+            flash[:success] = "Your LDAP password has been successfully changed."
+          else
+            flash[:error] = "Failed to change your password; #{validation_info[:error_message]}"
+          end
           redirect back
         rescue Exception => e
           handle_error(e)
