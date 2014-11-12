@@ -36,6 +36,8 @@ class Net::LDAP::Password
 
     # Password validation
     def validate(password, username)
+
+      # Disallowed patterns in passwords
       invalid_patterns = [
         "qwerty",
         "asdf",
@@ -43,13 +45,24 @@ class Net::LDAP::Password
       ]
       password_is_valid = false
 
-      # RegExes
+      # Regexes to check for password complexity.
+      #
+      # In order:
+      # - Verify we have at least two special characters
+      # - Verify that our password isn't a palindrome
+      # - Verify that none of our disallowed patterns are present
+      # - Verify that the password does not contain 3-character sequences contained in the username
+      # - Verify that the password is between 12 and 99 characters long
+      # - Verify that the password contains a lowercase letter
+      # - Verify that the password contains an uppercase letter
+      # - Verify that the password contains a number
+
       if password.to_enum(:scan, /([\~\!\@\#\$\%\^\&\*\(\)\`\-\_\+\=\{\}\[\]\|\\\;\:\'\"\<\>\,\.\/\?])/).map{ Regexp.last_match }.length < 2
         error_message = "Passwords must have at least 2 special characters."
       elsif password == password.reverse
         error_message = "Passwords cannot be palindromes."
       elsif password =~ /#{invalid_patterns.join("|")}/
-        error_message = "Passwords may not contain 'qwerty', 'asdf', or '1234'."
+        error_message = "Passwords may not contain #{invalid_patterns.join(", ")}."
       elsif "#{username}\n#{password}" =~ /(?=(...)[^\n]*\n(?:(?!\1).)*\1)/
         error_message = "Passwords may not contain more than 3 characters in common with your user ID."
       elsif not password =~ /^.{12,99}$/
