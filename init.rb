@@ -125,14 +125,14 @@ module Optopus
         begin
           validate_param_presence 'account-password'
           posixaccount_from_params
-          validation_info = ldap_admin.validate_password(params['account-password'])
+          validation_info = ldap_admin.validate_password(params['account-password'], ldap_uid)
           if validation_info[:password_is_valid]
             hash = ldap_admin.password_hash(params['account-password'])
             ldap_admin.update_posixaccount_password(@posixaccount.uid, hash)
             flash[:success] = "Successfully changed #{@posixaccount.uid}'s password!"
             register_event "{{ references.user.to_link }} changed password for #{@posixaccount.uid} in ldap", :type => 'ldap_changepassword'
           else
-            flash[:error] = "Failed to change #{@posixaccount.uid}'s password; #{validation_info[:error_message]}"
+            flash[:error] = "Failed to change #{@posixaccount.uid}'s password: #{validation_info[:error_message]}"
           end
           redirect back
         rescue Exception => e
