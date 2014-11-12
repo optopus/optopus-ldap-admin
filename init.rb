@@ -125,7 +125,7 @@ module Optopus
         begin
           validate_param_presence 'account-password'
           posixaccount_from_params
-          validation_info = ldap_admin.validate_password(params['account-password'], ldap_uid)
+          validation_info = ldap_admin.validate_password(params['account-password'], params[:username])
           if validation_info[:password_is_valid]
             hash = ldap_admin.password_hash(params['account-password'])
             ldap_admin.update_posixaccount_password(@posixaccount.uid, hash)
@@ -291,7 +291,7 @@ module Optopus
       post '/ldap/user_change_password' do
         begin
           validate_param_presence 'account-password', 'verify-account-password'
-          validation_info = ldap_admin.validate_password(params['account-password'])
+          validation_info = ldap_admin.validate_password(params['account-password'], @user.username)
           if validation_info[:password_is_valid]
             hash = ldap_admin.password_hash(params['account-password'])
             ldap_admin.update_posixaccount_password(@user.ldap_posixaccount.uid, hash)
