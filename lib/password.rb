@@ -35,14 +35,23 @@ class Net::LDAP::Password
     end
 
     # Password validation
-    def validate(password)
+    def validate(password, username)
+      invalid_patterns = [
+        "qwerty",
+        "asdf",
+        "1234",
+      ]
       password_is_valid = false
-      # RegExes
 
+      # RegExes
       if password.to_enum(:scan, /([\~\!\@\#\$\%\^\&\*\(\)\`\-\_\+\=\{\}\[\]\|\\\;\:\'\"\<\>\,\.\/\?])/).map{ Regexp.last_match }.length < 2
         error_message = "Passwords must have at least 2 special characters."
       elsif password == password.reverse
         error_message = "Passwords cannot be palindromes."
+      elsif password =~ /#{invalid_patterns.join("|")}/
+        error_message = "Passwords may not contain 'qwerty', 'asdf', or '1234'."
+      elsif "#{username}\n#{password}" =~ (?=(...)[^\n]*\n(?:(?!\1).)*\1)
+        error_message = "Passwords may not contain more than 3 characters in common with your user ID."
       elsif not password =~ /^.{12,99}$/
         error_message = "Passwords must be between 12 and 99 characters long."
       elsif not password =~ /[a-z]/
@@ -52,8 +61,20 @@ class Net::LDAP::Password
       elsif not password =~ /[0-9]/
         error_message = "Passwords must contain at least 1 number."
       else
-        password_is_valid = true
-        error_message     = ''
+        character_count     = password.scan(/\w/).inject(Hash.new(0)){|hash, character| hash[character] += 1; hash}
+        repeated_characters = false
+
+        character_count.each do |key, value|
+          if value > 2
+            repeated_characters = true
+            error_message       = "Passwords cannot contain the same character more than twice. Offending character: #{key}"
+          end
+        end
+
+        if repeated_characters == false
+          password_is_valid = true
+          error_message     = ''
+        end
       end
 
       return_hash = {
