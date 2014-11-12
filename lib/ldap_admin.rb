@@ -110,8 +110,8 @@ class LDAPAdmin
     Net::LDAP::Password.generate(:ssha, string)
   end
 
-  def validate_password(password)
-    Net::LDAP::Password.validate(password, @dn)
+  def validate_password(password, username)
+    Net::LDAP::Password.validate(password, username)
   end
 
   def lookup_memberuid(uid)
