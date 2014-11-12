@@ -67,7 +67,7 @@ class Net::LDAP::Password
         character_count.each do |key, value|
           if value > 2
             repeated_characters = true
-            error_message       = "Passwords cannot contain the same character more than twice. Offending character: #{key}"
+            error_message       = "Passwords cannot contain the same character more than twice."
           end
         end
 
