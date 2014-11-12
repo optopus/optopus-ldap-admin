@@ -296,11 +296,10 @@ module Optopus
             hash = ldap_admin.password_hash(params['account-password'])
             ldap_admin.update_posixaccount_password(@user.ldap_posixaccount.uid, hash)
             flash[:success] = "Your LDAP password has been successfully changed."
-
-            redirect back
           else
             flash[:error] = "Failed to change your password; #{validation_info[:error_message]}"
           end
+          redirect back
         rescue Exception => e
           handle_error(e)
         end
