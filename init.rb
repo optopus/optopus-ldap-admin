@@ -88,12 +88,12 @@ module Optopus
             }
           }
 
-          groups = []
+          account_groups = []
           account.groups.each do |group|
-            groups.push(group.cn)
+            account_groups.push(group.cn)
           end
 
-          data_hash.merge!({:groups => groups})
+          data_hash.merge!({:groups => account_groups})
 
           account_data.merge!(data_hash)
         end
