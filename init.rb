@@ -75,6 +75,31 @@ module Optopus
         erb :admin_ldap
       end
 
+      get '/ldap/report', :auth => [:ldap_admin, :admin] do
+        account_data = {}
+        posixaccounts.each do |account|
+          data_hash = {
+            :uid           => account.uid,
+            :uidnumber     => account.uidnumber,
+            :cn            => account.cn,
+            :dn            => account.dn,
+            :shell         => account.loginshell,
+            :homedirectory => account.homedirectory,
+          }
+
+          groups = []
+          account.groups.each do |group|
+            groups.push(group)
+          end
+
+          data_hash.merge!({:groups => groups})
+
+          account_data.merge!(data_hash)
+        end
+
+        puts account_data
+      end
+
       get '/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
         posixaccount_from_params
         erb :admin_ldap_change_password
