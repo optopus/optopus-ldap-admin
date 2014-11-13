@@ -92,10 +92,10 @@ module Optopus
             end
           end
 
+          # Download the file and send us back.
           content_type 'application/csv'
           attachment "ldap_report.csv"
-
-          csv_data
+          return csv_data
 
         rescue Exception => e
           handle_error(e)
