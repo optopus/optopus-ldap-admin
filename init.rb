@@ -1,5 +1,6 @@
 require 'optopus/plugin'
 require 'net/ldap'
+require 'csv'
 require_relative 'lib/ldap_admin'
 
 module Optopus
@@ -76,28 +77,18 @@ module Optopus
       end
 
       get '/ldap/report', :auth => [:ldap_admin, :admin] do
-        account_data = {}
-        posixaccounts.each do |account|
-          account_groups = []
-          account.groups.each do |group|
-            account_groups.push(group.cn)
+        csv_data = CSV.generate do |csv|
+          csv << ["# Name", "UID Number", "CN", "DN", "Shell", "Home Directory", "Groups"]
+          posixaccounts.each do |account|
+            account_groups = []
+            account.groups.each do |group|
+              account_groups.push(group.cn)
+            end
+
+            csv << [account.uid, account.uidnumber, account.cn, account.dn, account.loginshell, account.homedirectory, "#{account_groups.join('/')}"]
           end
-
-          data_hash = {
-            account.uid => {
-              :uidnumber      => account.uidnumber,
-              :cn             => account.cn,
-              :dn             => account.dn,
-              :shell          => account.loginshell,
-              :home_directory => account.homedirectory,
-              :groups         => "#{account_groups.join(' ')}",
-            }
-          }
-
-          account_data.merge!(data_hash)
         end
-
-        puts account_data
+        puts csv_data
       end
 
       get '/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
