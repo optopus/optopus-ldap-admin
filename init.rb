@@ -85,7 +85,7 @@ module Optopus
               account_groups.push(group.cn)
             end
 
-            csv << [account.uid, account.uidnumber, account.cn, account.dn, account.loginshell, account.homedirectory, "#{account_groups.join('/')}"]
+            csv << [account.uid, account.uidnumber, account.cn, account.dn, account.loginshell, account.homedirectory, "#{account_groups.join(' / ')}"]
           end
         end
         puts csv_data
