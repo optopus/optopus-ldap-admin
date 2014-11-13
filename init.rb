@@ -1,5 +1,6 @@
 require 'optopus/plugin'
 require 'net/ldap'
+require 'net/smtp'
 require 'csv'
 require_relative 'lib/ldap_admin'
 
@@ -77,18 +78,39 @@ module Optopus
       end
 
       get '/ldap/report', :auth => [:ldap_admin, :admin] do
-        csv_data = CSV.generate do |csv|
-          csv << ["# Name", "UID Number", "CN", "DN", "Shell", "Home Directory", "Groups"]
-          posixaccounts.each do |account|
-            account_groups = []
-            account.groups.each do |group|
-              account_groups.push(group.cn)
+        # Let users get a dump of everything in our LDAP tree
+        begin
+          # Generate our CSV file in memory
+          csv_data = CSV.generate do |csv|
+            csv << ["# Name", "UID Number", "CN", "DN", "Shell", "Home Directory", "Groups"]
+            posixaccounts.each do |account|
+              account_groups = []
+              account.groups.each do |group|
+                account_groups.push(group.cn)
+              end
+              csv << [account.uid, account.uidnumber, account.cn, account.dn, account.loginshell, account.homedirectory, "#{account_groups.join(' / ')}"]
             end
-
-            csv << [account.uid, account.uidnumber, account.cn, account.dn, account.loginshell, account.homedirectory, "#{account_groups.join(' / ')}"]
           end
+
+          # Send this in an email
+          message = [
+            "From: Optopus <bot@optopus.shuttercorp.net>",
+            "To: #{@user.username}@shutterstock.com",
+            "MIME-Version: 1.0",
+            "Content-type: text/plain",
+            "Subject: LDAP Audit",
+            "#{csv_data}".
+            "Thanks,",
+            "Optopus LDAP Bot",
+          ].join("\n")
+
+          Net::SMTP.start('mail.shuttercorp.net') do |smtp|
+            smtp.send_message message, 'bot@optopus.shuttercorp.net', "#{@user.username}@shutterstock.com"
+          end
+
+        rescue Exception => e
+          handle_error(e)
         end
-        puts csv_data
       end
 
       get '/ldap/:username/changepassword', :auth => [:ldap_admin, :admin] do
