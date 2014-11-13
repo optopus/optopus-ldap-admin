@@ -95,7 +95,9 @@ module Optopus
 
           data_hash.merge!(
             {
-              :groups => "#{account_groups.join(' ')}",
+              account.uid => {
+                :groups => "#{account_groups.join(' ')}",
+              }
             }
           )
 
