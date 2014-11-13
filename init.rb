@@ -80,11 +80,11 @@ module Optopus
         posixaccounts.each do |account|
           data_hash = {
             account.uid => {
-              :uidnumber     => account.uidnumber,
-              :cn            => account.cn,
-              :dn            => account.dn,
-              :shell         => account.loginshell,
-              :homedirectory => account.homedirectory,
+              :uidnumber      => account.uidnumber,
+              :cn             => account.cn,
+              :dn             => account.dn,
+              :shell          => account.loginshell,
+              :home_directory => account.homedirectory,
             }
           }
 
@@ -93,7 +93,11 @@ module Optopus
             account_groups.push(group.cn)
           end
 
-          data_hash.merge!({:groups => account_groups})
+          data_hash.merge!(
+            {
+              :groups => "#{account_groups.join(' ')}",
+            }
+          )
 
           account_data.merge!(data_hash)
         end
