@@ -78,6 +78,11 @@ module Optopus
       get '/ldap/report', :auth => [:ldap_admin, :admin] do
         account_data = {}
         posixaccounts.each do |account|
+          account_groups = []
+          account.groups.each do |group|
+            account_groups.push(group.cn)
+          end
+
           data_hash = {
             account.uid => {
               :uidnumber      => account.uidnumber,
@@ -85,21 +90,9 @@ module Optopus
               :dn             => account.dn,
               :shell          => account.loginshell,
               :home_directory => account.homedirectory,
+              :groups         => "#{account_groups.join(' ')}",
             }
           }
-
-          account_groups = []
-          account.groups.each do |group|
-            account_groups.push(group.cn)
-          end
-
-          data_hash.merge!(
-            {
-              account.uid => {
-                :groups => "#{account_groups.join(' ')}",
-              }
-            }
-          )
 
           account_data.merge!(data_hash)
         end
