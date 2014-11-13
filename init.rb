@@ -99,7 +99,7 @@ module Optopus
             "MIME-Version: 1.0",
             "Content-type: text/plain",
             "Subject: LDAP Audit",
-            "#{csv_data}".
+            "#{csv_data}",
             "Thanks,",
             "Optopus LDAP Bot",
           ].join("\n")
