@@ -79,12 +79,13 @@ module Optopus
         account_data = {}
         posixaccounts.each do |account|
           data_hash = {
-            :uid           => account.uid,
-            :uidnumber     => account.uidnumber,
-            :cn            => account.cn,
-            :dn            => account.dn,
-            :shell         => account.loginshell,
-            :homedirectory => account.homedirectory,
+            account.uid => {
+              :uidnumber     => account.uidnumber,
+              :cn            => account.cn,
+              :dn            => account.dn,
+              :shell         => account.loginshell,
+              :homedirectory => account.homedirectory,
+            }
           }
 
           groups = []
