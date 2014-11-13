@@ -92,21 +92,10 @@ module Optopus
             end
           end
 
-          # Send this in an email
-          message = [
-            "From: Optopus <bot@optopus.shuttercorp.net>",
-            "To: #{@user.username}@shutterstock.com",
-            "MIME-Version: 1.0",
-            "Content-type: text/plain",
-            "Subject: LDAP Audit",
-            "#{csv_data}",
-            "Thanks,",
-            "Optopus LDAP Bot",
-          ].join("\n")
+          content_type 'application/csv'
+          attachment "ldap_report.csv"
 
-          Net::SMTP.start('mail.shuttercorp.net') do |smtp|
-            smtp.send_message message, 'bot@optopus.shuttercorp.net', "#{@user.username}@shutterstock.com"
-          end
+          csv_data
 
         rescue Exception => e
           handle_error(e)
