@@ -2,6 +2,7 @@ require 'optopus/plugin'
 require 'net/ldap'
 require 'net/smtp'
 require 'csv'
+require 'time'
 require_relative 'lib/ldap_admin'
 
 module Optopus
@@ -94,7 +95,7 @@ module Optopus
 
           # Download the file and send us back.
           content_type 'application/csv'
-          attachment "ldap_report.csv"
+          attachment "optopus_ldap_report_#{Time.now.to_i}.csv"
           return csv_data
 
         rescue Exception => e
