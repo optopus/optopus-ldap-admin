@@ -83,13 +83,13 @@ module Optopus
         begin
           # Generate our CSV file in memory
           csv_data = CSV.generate do |csv|
-            csv << ["# Name", "UID Number", "CN", "DN", "Shell", "Home Directory", "Groups"]
+            csv << ["# CN", "UID", "UID Number", "DN", "GID Number", "Home Directory", "Login Shell", "Groups"]
             posixaccounts.each do |account|
               account_groups = []
               account.groups.each do |group|
                 account_groups.push(group.cn)
               end
-              csv << [account.uid, account.uidnumber, account.cn, account.dn, account.loginshell, account.homedirectory, "#{account_groups.join(' / ')}"]
+              csv << [account.cn, account.uid, account.uidnumber, account.dn, "#{account.gidnumber} (#{account.posixgroup.cn})", account.homedirectory, account.loginshell, "#{account_groups.join(' / ')}"]
             end
           end
 
