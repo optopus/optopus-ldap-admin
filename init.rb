@@ -197,7 +197,26 @@ module Optopus
           ldap_admin.delete_all_ssh_keys(params[:username])
           ldap_admin.update_posixaccount_loginshell(params[:username], '/sbin/nologin')
           flash[:success] = "Successfully disabled ldap account '#{params[:username]}'"
-          register_event "{{ references.user.to_link }} disabled '#{params[:username]}' from ldap", :type => 'ldap_disabl'
+          register_event "{{ references.user.to_link }} disabled '#{params[:username]}' from ldap", :type => 'ldap_disable'
+          redirect '/ldap'
+        rescue Exception => e
+          handle_error(e)
+        end
+      end
+
+      # Allow re-enabling of users via the form
+      get '/ldap/posixaccount/:username/enable', :auth => [:ldap_admin, :admin] do
+        results = ldap_admin.lookup_username(params[:username])
+        raise 'Invalid posixaccount' unless results
+        @posixaccount = LDAPAdmin::PosixAccount.new(results)
+        erb :admin_ldap_enable_account
+      end
+
+      post '/ldap/posixaccount/:username/enable', :auth => [:ldap_admin, :admin] do
+        begin
+          ldap_admin.update_posixaccount_loginshell(params[:username], '/bin/bash')
+          flash[:success] = "Successfully enabled ldap account '#{params[:username]}'. Please reset '#{params[:username]}''s password manually."
+          register_event "{{ references.user.to_link }} enabled '#{params[:username]}' from ldap", :type => 'ldap_enable'
           redirect '/ldap'
         rescue Exception => e
           handle_error(e)

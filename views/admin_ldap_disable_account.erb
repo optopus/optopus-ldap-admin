@@ -4,7 +4,7 @@
     <h3>Confirmation</h3>
   </div>
   <div class="modal-body">
-    <p>Please confirm that you would like to disable <em><%= @posixaccount.uid %></em>. This cannot be undone and will be logged.</p>
+    <p>Please confirm that you would like to disable <em><%= @posixaccount.uid %></em>. This event will be logged.</p>
   </div>
   <div class="modal-footer">
     <form id="disable-posixaccount" method="post" action="/ldap/posixaccount/<%= @posixaccount.uid %>/disable">
