@@ -168,14 +168,14 @@ module Optopus
         end
       end
 
-      get '/ldap/posixaccount/:username/delete', :auth => [:ldap_admin, :admin] do
+      get '/ldap/posixaccount/:username/delete', :auth => [:admin] do
         results = ldap_admin.lookup_username(params[:username])
         raise 'Invalid posixaccount' unless results
         @posixaccount = LDAPAdmin::PosixAccount.new(results)
         erb :admin_ldap_delete_account
       end
 
-      delete '/ldap/posixaccount/:username', :auth => [:ldap_admin, :admin] do
+      delete '/ldap/posixaccount/:username', :auth => [:admin] do
         ldap_admin.delete_posixaccount(params[:username])
         flash[:success] = "Successfully deleted ldap account '#{params[:username]}'"
         register_event "{{ references.user.to_link }} deleted '#{params[:username]}' from ldap", :type => 'ldap_delete'
