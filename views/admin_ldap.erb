@@ -31,7 +31,7 @@
           <% unless account.loginshell == "/sbin/nologin" %>
           <button class="btn btn-mini btn-warning" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/disable')">Disable</button>
           <% else %>
-          <button class="btn btn-mini btn-success" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/enable')">Enable</button>
+          <button class="btn btn-mini btn-success" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/enable')" style="width:51px">Enable</button>
           <% end %>
           <% if is_admin? %>
           <button class="btn btn-mini btn-danger" onclick="load_util('/ldap/posixaccount/<%= account.uid %>/delete')">Delete</button>
