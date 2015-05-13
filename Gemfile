@@ -1,1 +1,1 @@
-gem 'net-ldap'
+gem 'net-ldap', '0.8.0'
