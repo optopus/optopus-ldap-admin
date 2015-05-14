@@ -359,11 +359,19 @@ module Optopus
         raise 'Missing LDAP bind password' unless plugin_settings.include?('bind_password')
         raise 'Missing LDAP host' unless plugin_settings.include?('host')
         raise 'Missing LDAP base dn' unless plugin_settings.include?('base_dn')
+        ldap_options = plugin_settings = app.settings.plugins['ldap_admin']['encryption']
+        raise 'Missing encryption method' unless ldap_options.include?('encryption')
+        raise 'Missing CA file' unless ldap_options.include?('ca_file')
         ldap_settings = {
           :base_dn    => plugin_settings['base_dn'],
           :host       => plugin_settings['host'],
           :port       => plugin_settings['port'] || 389,
-          :encryption => :start_tls,
+          :encryption => {
+            :method       => plugin_settings['encryption']['method'],
+            :tls_options  => {
+              :ca_file     => plugin_settings['encryption']['ca_file'],
+            },
+          },
           :auth       => {
             :method   => :simple,
             :username => plugin_settings['bind_dn'],
