@@ -38,7 +38,7 @@
         <div class="controls">
           <select name="account-primary-group" id="account-primary-group">
             <% ldap_admin.posixgroups.each do |group| %>
-              <option value="<%= group.gidnumber %>"><%= group.cn %> (<%= group.gidnumber %>)</option>
+              <option value="<%= group.gidnumber %>" <% if group.cn == "Development" %>selected<% end %>><%= group.cn %> (<%= group.gidnumber %>)</option>
             <% end %>
           </select>
         </div>
