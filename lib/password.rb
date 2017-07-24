@@ -57,8 +57,8 @@ class Net::LDAP::Password
       # - Verify that the password contains an uppercase letter
       # - Verify that the password contains a number
 
-      if password.to_enum(:scan, /([\~\!\@\#\$\%\^\&\*\(\)\`\-\_\+\=\{\}\[\]\|\\\;\:\'\"\<\>\,\.\/\?])/).map{ Regexp.last_match }.length < 2
-        error_message = "Passwords must have at least 2 special characters."
+      if not password =~ /[\~\!\@\#\$\%\^\&\*\(\)\`\-\_\+\=\{\}\[\]\|\\\;\:\'\"\<\>\,\.\/\?]/
+        error_message = "Passwords must have at least 1 special character."
       elsif password == password.reverse
         error_message = "Passwords cannot be palindromes."
       elsif password =~ /#{invalid_patterns.join("|")}/
